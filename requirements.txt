@@ -1,0 +1,13 @@
+python-binance
+numpy==1.19
+websocket_client
+pandas
+seaborn
+scikit-learn
+scipy 
+matplotlib
+statsmodels
+pmdarima
+tensorflow==1.15
+keras
+quandl
