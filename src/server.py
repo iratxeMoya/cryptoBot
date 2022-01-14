@@ -2,10 +2,21 @@ from simple_websocket_server import WebSocketServer, WebSocket
 import websocket
 from functools import partial
 import json
-from .bot import *
+import threading
+from binanceConnection import *
 
-clients = []
 connections = []
+
+HOST = 'localhost'
+PORT = '8000'
+
+def runForever(connection, SOCKET):
+    connection['ws'] = websocket.WebSocketApp(SOCKET, 
+                        on_open=partial(on_open, connection=connection),
+                        on_close=partial(on_close, connection = connection),
+                        on_message=partial(on_message, connection = connection))
+            
+    connection['ws'].run_forever()
 
 class CryptoBot(WebSocket):
     def handle(self):
@@ -17,32 +28,29 @@ class CryptoBot(WebSocket):
             
             connection = message['content']
             connection['client'] = self
-            connection['closes'], connection['highs'], connection['lows'], connection['buying'], connection['selling'] = [], [], [], [], []
-            connection['model'], connection['scaller'], connection['datas'], connection['SEQ_LEN'] = None, None, None, None
+            connection['closes'], connection['highs'], connection['lows'], connection['buying'], connection['selling'], connection['actions'] = [], [], [], [], [], []
+            connection['model'], connection['scaller'], connection['datas'], connection['SEQ_LEN'], connection['dates'] = None, None, None, None, None
             
             SOCKET = "wss://stream.binance.com:9443/ws/{}{}@kline_{}".format(connection['PAIR1'], connection['PAIR2'], connection['PERIOD'])
-            connection['ws'] = websocket.WebSocketApp(SOCKET, 
-                                                      on_open=partial(on_open, connection=connection),
-                                                      on_close=partial(on_close, connection = connection),
-                                                      on_message=partial(on_message, connection = connection))
-            
-            connection['ws'].run_forever()
+            th = threading.Thread(target=partial(runForever, connection = connection, SOCKET = SOCKET))
+            th.start()
         
         if message['action'] == 'stopConnection':
-            connection = next((d for d in connections if d["client"] == self), None)
+            i = next((index for (index, d) in enumerate(connections) if d["client"] == self), None)
+            connections.pop(i)
             connection['ws'].close()
         
 
     def connected(self):
         print(self.address, 'connected')
-        clients.append(self)
         
 
     def handle_close(self):
         print(self.address, 'disconnected')
+        
 
-
-server = WebSocketServer('', 8000, CryptoBot)
+print('conected')
+server = WebSocketServer(HOST, PORT, CryptoBot)
 server.serve_forever()
 
 """[Client side]

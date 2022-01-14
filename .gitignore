@@ -134,3 +134,4 @@ src/pruebas/
 .config.ini
 *.csv
 *.png
+src/client.py

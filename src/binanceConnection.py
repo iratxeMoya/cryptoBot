@@ -44,12 +44,12 @@ saveActions = 'src/data/actions.json'
 # TODO: Calcular SEQ_LEN en funcion de la cantidad de datos
 # TODO: Eliminar el run de ws
     
-def on_open(ws):
+def on_open(ws, connection):
     
-    global model, dates, datas, SEQ_LEN, scaler
     print('opened connection')
+    connection['client'].send_message(json.dumps({'type': 'connection', 'message': 'Connection opened'}))
     
-    client = Client(API_KEY, SECRET_KEY)
+    client = Client(connection['API_KEY'], connection['SECRET_KEY'])
     
     crypto = client.get_all_tickers()
     crypto_df = pd.DataFrame(crypto)
@@ -64,59 +64,50 @@ def on_open(ws):
     hist_df = hist_df if len(hist_df) < 5000 else hist_df[-5000:] # Get las 5000 data
     
     logger.info('Preprocessing data')
-    X_train, y_train, X_test, y_test, dates, scaler = preprocessData(hist_df, SEQ_LEN)
+    X_train, y_train, X_test, y_test, connection['dates'], connection['scaler'] = preprocessData(hist_df, SEQ_LEN)
     
     logger.info('Preparing some data for inference')
     datas = np.concatenate((y_train, y_test), axis=0)
 
     logger.info("GRU model generation")
-    model = generateModel(X_train.shape[1], X_train.shape[2])
+    connection['model'] = generateModel(X_train.shape[1], X_train.shape[2])
     
     logger.info('Training model')
-    history = trainModel(model, X_train, y_train)
+    history = trainModel(connection['model'], X_train, y_train)
+    connection['client'].send_message(json.dumps({'type': 'debug', 'message': 'model trained'}))
 
-def on_close(ws):
-    global model, actions
+def on_close(ws, connection):
     
-    del model
-    if saveActions is not None and len(actions) > 0:
+    del connection['model']
+    if len(actions) > 0:
         actionsEncoded = []
-        with open(saveActions, 'w') as f:
-            for a in actions:
-                actionsEncoded.append(json.dumps(a, indent=4, cls=ActionEncoder))
+        for a in connection['actions']:
+            actionsEncoded.append(json.dumps({'user': a.user, 'date': a.date, 'action': a.action}))
                 
-        json.dump(actionsEncoded, f)
+        connection['actions'] = json.dumps(actionsEncoded)
             
     logger.info('closed connection')
+    connection['client'].send_message(json.dumps({'type': 'connection', 'message': 'connection closed'}))
 
-def on_message(ws, message):
-    global closes, highs, lows, buying, selling, model, datas, scaler
+def on_message(ws, message, connection):
     
     json_message = json.loads(message)
     candle = json_message['k']
 
     if candle['x']:
-        buying = []
-        selling = []
+        connection['buying'] = []
+        connection['selling'] = []
         
-        closes, highs, lows = addNewInfo(candle, closes, highs, lows)
+        connection['closes'], connection['highs'], connection['lows'] = addNewInfo(candle, connection['closes'], connection['highs'], connection['lows'])
 
-        selling, buying = checkRSI(RSI_PERIOD, closes, buying, selling, RSI_OVERBOUGHT, RSI_OVERSOLD)
-        selling, buying = checkDIM(DIM_PERIOD, closes, highs, lows, buying, selling)
+        connection['selling'], connection['buying'] = checkRSI(connection['RSI_PERIOD'], connection['closes'], connection['buying'], connection['selling'], RSI_OVERBOUGHT, RSI_OVERSOLD)
+        connection['selling'], connection['buying'] = checkDIM(connection['DIM_PERIOD'], connection['closes'], connection['highs'], connection['lows'], connection['buying'], connection['selling'])
           
-        prediction, datas = makePrediction(distance, model, SEQ_LEN, datas, candle, scaler)
+        prediction, connection['datas'] = makePrediction(connection['distance'], connection['model'], connection['SEQ_LEN'], connection['datas'], candle, connection['scaler'])
         
-        action = tradingAction(buying, selling, scaler.inverse_transform(np.array(prediction).reshape(-1, 1)).reshape(distance).tolist(), float(candle['c']))
+        action = tradingAction(connection['buying'], connection['selling'], connection['scaler'].inverse_transform(np.array(prediction).reshape(-1, 1)).reshape(connection['distance']).tolist(), float(candle['c']))
         
         if action:
-            actions.append(action)
+            connection['actions'].append(action)
+            connection['client'].send_message(json.dumps({'type': 'action', 'message': action.action}))
 
-ws = websocket.WebSocketApp(SOCKET, on_open=on_open, on_close=on_close, on_message=on_message)
-ws.run_forever()
-# ws.close() for stopping connection
-"""[Sending arguments to callbacks]
-
-from functools import partial
-ws = websock.WebSocketApp(uri, on_message=partial(on_message, someList=ref_to_Obj))
-
-"""
