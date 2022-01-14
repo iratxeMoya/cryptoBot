@@ -55,7 +55,7 @@ seaborn==0.11.2
 simple-websocket-server==0.4.1
 six==1.16.0
 statsmodels==0.13.1
-TA-Lib @ file:///home/conda/feedstock_root/build_artifacts/ta-lib_1618425381850/work
+TA-Lib
 tensorboard==1.15.0
 tensorflow==1.15.0
 tensorflow-estimator==1.15.1
