@@ -1,6 +1,6 @@
 import websocket, json, sys, configparser
 import pandas as pd
-from lib.model import generateModel, trainModel
+from .lib.model import generateModel, trainModel
 from binance.enums import *
 from binance import Client
 from lib.data import *
