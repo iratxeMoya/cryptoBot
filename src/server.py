@@ -1,14 +1,14 @@
 from simple_websocket_server import WebSocketServer, WebSocket
 import websocket
 from functools import partial
-import json
+import json, os
 import threading
 from binanceConnection import *
 
 connections = []
 
-HOST = 'localhost'
-PORT = '8000'
+HOST = ''
+PORT = int(os.environ["PORT"])
 
 def runForever(connection, SOCKET):
     connection['ws'] = websocket.WebSocketApp(SOCKET, 
