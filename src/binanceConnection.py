@@ -3,6 +3,8 @@ import pandas as pd
 dir_path = os.path.dirname(os.path.realpath(__file__))
 os.chdir(dir_path)
 sys.path.append("./")
+
+print(sys.path, dir_path)
 from lib.model import generateModel, trainModel
 from binance.enums import *
 from binance import Client
