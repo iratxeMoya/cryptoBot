@@ -135,3 +135,4 @@ src/pruebas/
 *.csv
 *.png
 src/client.py
+src/bot.py
