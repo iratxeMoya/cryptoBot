@@ -1,7 +1,7 @@
 import websocket, json, sys, configparser, os
 import pandas as pd
 dir_path = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(dir_path)
+sys.path.append(dir_path + '/lib')
 
 print(sys.path, dir_path)
 from lib.model import generateModel, trainModel
