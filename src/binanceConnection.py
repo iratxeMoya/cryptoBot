@@ -1,17 +1,13 @@
-import websocket, json, sys, configparser, os
+import websocket, json, sys, configparser
 import pandas as pd
-dir_path = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(dir_path + '/lib')
-
-print(sys.path, dir_path)
-from lib.model import generateModel, trainModel
+from mylib.model import generateModel, trainModel
 from binance.enums import *
 from binance import Client
-from lib.data import *
-from lib.model import *
-from lib.log import logger
-from lib.technicalAnalisys import *
-from lib.classes import ActionEncoder
+from mylib.data import *
+from mylib.model import *
+from mylib.log import logger
+from mylib.technicalAnalisys import *
+from mylib.classes import ActionEncoder
 
 config = configparser.ConfigParser()
 config.read('config.ini')
