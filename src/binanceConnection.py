@@ -1,6 +1,9 @@
-import websocket, json, sys, configparser
+import websocket, json, sys, configparser, os
 import pandas as pd
-from .lib.model import generateModel, trainModel
+dir_path = os.path.dirname(os.path.realpath(__file__))
+os.chdir(dir_path)
+sys.path.append("./")
+from lib.model import generateModel, trainModel
 from binance.enums import *
 from binance import Client
 from lib.data import *
