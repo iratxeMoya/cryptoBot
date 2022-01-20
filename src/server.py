@@ -26,7 +26,7 @@ class CryptoBot(WebSocket):
         
         if message['action'] == 'createConection':
             print([c['client'].address for c in connections], self.address)
-            x = next((d for d in connections if d["client"] == self), None)
+            x = next((d for d in connections if d["id"] == message['id']), None)
             if x and message['content']['PAIR1'] == x['PAIR1'] and message['content']['PAIR2'] == x['PAIR2'] and message['content']['PERIOD'] == x['PERIOD']:
                 self.send_message(json.dumps({'type': 'connection', 'message': 'Connection reopened'}))
             else:
