@@ -80,7 +80,7 @@ def getData(PAIR1:str, PAIR2:str, PERIOD:str, client:Client, useSaved:bool = Fal
     else:
         if os.path.exists('%s-%s-data.csv' % (PAIR1.upper() + PAIR2.upper(), PERIOD)):
             os.remove('%s-%s-data.csv' % (PAIR1.upper() + PAIR2.upper(), PERIOD))
-        historical = get_all_binance(PAIR1.upper() + PAIR2.upper(), PERIOD, client, True)
+        historical = get_all_binance(PAIR1.upper() + PAIR2.upper(), PERIOD, client, False)
         hist_df = pd.DataFrame(historical)
 
     return hist_df
