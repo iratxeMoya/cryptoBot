@@ -48,6 +48,17 @@ def checkDIM(DIM_PERIOD:int, closes:list, highs:list, lows:list, buying:list, se
     
     return selling, buying
 
+def checkEMA(closes:list, buying:list, selling:list) -> list:
+    
+    if talib.EMA(closes, 20) > talib.EMA(closes, 200):
+        buying.append(True)
+        logger.warning('EMA buying achived')
+    else:
+        selling.append(True)
+        logger.warning('EMA selling achived')
+        
+    return selling, buying
+
 def addNewInfo(candle:dict, closes:list, highs:list, lows:list) -> Tuple[list, list, list]:
     
     closes.append(float(candle['c']))
@@ -61,6 +72,7 @@ def tradingAction(buying:list, selling:list, prediction:list, actualPrice:float,
     action = None
     
     if prediction[-1] > actualPrice:
+        logger.warning('Prediction is UP')
         if sum(buying) > 0 and sum(buying) > sum(selling) and indicators - sum(buying) < indicators / 2:
             logger.warning('BUY')
             action = Action('Buy')

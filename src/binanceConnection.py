@@ -102,6 +102,7 @@ def on_message(ws, message, connection):
 
         connection['selling'], connection['buying'] = checkRSI(connection['RSI_PERIOD'], connection['closes'], connection['buying'], connection['selling'], RSI_OVERBOUGHT, RSI_OVERSOLD)
         connection['selling'], connection['buying'] = checkDIM(connection['DIM_PERIOD'], connection['closes'], connection['highs'], connection['lows'], connection['buying'], connection['selling'])
+        connection['selling'], connection['buying'] = checkEMA(connection['closes'], connection['buying'], connection['selling'])
           
         prediction, connection['datas'] = makePrediction(connection['distance'], connection['model'], connection['SEQ_LEN'], connection['datas'], candle, connection['scaler'])
         

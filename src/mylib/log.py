@@ -20,7 +20,7 @@ class CustomFormatter(logging.Formatter):
         formatter = logging.Formatter(log_fmt)
         return formatter.format(record)
 
-LEVEL = logging.DEBUG
+LEVEL = logging.INFO
 logger = logging.getLogger("cryptoBot")
 logging.basicConfig(format=FORMAT, level = LEVEL)
 

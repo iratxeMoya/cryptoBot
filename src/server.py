@@ -26,14 +26,17 @@ class CryptoBot(WebSocket):
         
         if message['action'] == 'createConection':
             
-            connection = message['content']
-            connection['client'] = self
-            connection['closes'], connection['highs'], connection['lows'], connection['buying'], connection['selling'], connection['actions'] = [], [], [], [], [], []
-            connection['model'], connection['scaller'], connection['datas'], connection['SEQ_LEN'], connection['dates'] = None, None, None, None, None
-            
-            SOCKET = "wss://stream.binance.com:9443/ws/{}{}@kline_{}".format(connection['PAIR1'], connection['PAIR2'], connection['PERIOD'])
-            th = threading.Thread(target=partial(runForever, connection = connection, SOCKET = SOCKET))
-            th.start()
+            if next((d for d in connections if d["client"] == self), None):
+                self.send_message(json.dumps({'type': 'connection', 'message': 'Connection reopened'}))
+            else:
+                connection = message['content']
+                connection['client'] = self
+                connection['closes'], connection['highs'], connection['lows'], connection['buying'], connection['selling'], connection['actions'] = [], [], [], [], [], []
+                connection['model'], connection['scaller'], connection['datas'], connection['SEQ_LEN'], connection['dates'] = None, None, None, None, None
+                
+                SOCKET = "wss://stream.binance.com:9443/ws/{}{}@kline_{}".format(connection['PAIR1'], connection['PAIR2'], connection['PERIOD'])
+                th = threading.Thread(target=partial(runForever, connection = connection, SOCKET = SOCKET))
+                th.start()
         
         if message['action'] == 'stopConnection':
             i = next((index for (index, d) in enumerate(connections) if d["client"] == self), None)
