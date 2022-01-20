@@ -26,7 +26,8 @@ class CryptoBot(WebSocket):
         
         if message['action'] == 'createConection':
             print([c['client'].address for c in connections], self.address)
-            if next((d for d in connections if d["client"] == self), None):
+            x = next((d for d in connections if d["client"] == self), None)
+            if x and message['content']['PAIR1'] == x['PAIR1'] and message['content']['PAIR2'] == x['PAIR2'] and message['content']['PERIOD'] == x['PERIOD']:
                 self.send_message(json.dumps({'type': 'connection', 'message': 'Connection reopened'}))
             else:
                 connection = message['content']
@@ -37,6 +38,8 @@ class CryptoBot(WebSocket):
                 SOCKET = "wss://stream.binance.com:9443/ws/{}{}@kline_{}".format(connection['PAIR1'], connection['PAIR2'], connection['PERIOD'])
                 th = threading.Thread(target=partial(runForever, connection = connection, SOCKET = SOCKET))
                 th.start()
+                
+                connections.append(connection)
         
         if message['action'] == 'stopConnection':
             i = next((index for (index, d) in enumerate(connections) if d["client"] == self), None)
